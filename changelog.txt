@@ -1,0 +1,8 @@
+v1.0.3
+- error recovery precautions
+
+v1.0.2
+- code cleanup
+
+v1.0.1
+- initial release

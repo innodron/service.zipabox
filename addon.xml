@@ -1,0 +1,54 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<addon id="service.zipabox" name="Zipabox Sync" version="1.0.3" provider-name="innodron">
+	<requires>
+		<import addon="xbmc.python" version="2.19.0"/>
+	</requires>
+	<extension point="xbmc.service" library="default.py"/>
+	<extension point="xbmc.addon.metadata">
+		<summary lang="en">A plugin for pushing state change notifications to Zipabox home automation controller</summary>
+		<summary lang="tr">Zipabox Akıllı Ev kontrol ünitesi ile senkronizasyon eklentisi</summary>
+		<description lang="en">Notifies Zipabox of KODI/XBMC changes state by setting the value of a Zipabox Virtual Meter.
+
+Virtual meter values corresponding to Kodi states are:
+ 0 Kodi not running
+ 1 Kodi running
+10 User is on or navigating the menu
+20 Video playback started
+21 End of video
+22 Video playback stopped
+23 Video paused
+24 Video resumed
+30 Audio playback started
+31 End of track
+32 Audio playback stopped
+33 Audio playback paused
+34 Audio playback resumed
+		</description>
+		<description lang="tr">KODI/XBMC durum bilgisini Zipabox'a göndererek Zipabox üzerinde Kodi ile senkronize olarak kural çalıştırılmasını sağlar.
+
+Kodi durum bilgisine göre Zipabox üzerinde belirlenen Sanal Meter aşağıdaki değerleri alacaktır.
+ 0 Kodi uygulamasından çıkış yapıldı
+ 1 Kodi uygulaması çalışıyor
+10 Kodi menü ekranında
+20 Video dosyası başlatıldı
+21 Video dosyası sonu
+22 Video durduruldu
+23 Video duraklatıldı
+24 Video devam ettirildi
+30 Ses dosyası başlatıldı
+31 Ses dosyası sonu
+32 Ses dosyası durduruldu
+33 Ses dosyası duraklatıldı
+34 Ses dosyası devam ettirildi
+</description>
+		<disclaimer lang="en">Original script: provided at http://www.maison-et-domotique.com/30695-plugin-zipabox-pour-xbmc/ as blogged by CÉDRIC LOCQUENEUX. Adapted to Kodi v15+, debugged and code-cleaned by INNODRON (http://innodron.com)</disclaimer>
+		<disclaimer lang="tr">Orjinal kod CÉDRIC LOCQUENEUX tarafından http://www.maison-et-domotique.com/30695-plugin-zipabox-pour-xbmc/ yayınlanan bir blogdan alınmıştır. INNODRON tarafından KODI v15 e adapte edilmiştir.(http://innodron.com)</disclaimer>
+		<language></language>
+		<platform>all</platform>
+		<license>GNU GENERAL PUBLIC LICENSE Version 2</license>
+		<forum>https://github.com/innodron/service.zipabox/issues</forum>
+		<website>https://github.com/innodron/service.zipabox</website>
+		<email>support@innodron.com</email>
+		<source>https://github.com/innodron/service.zipabox</source>
+	</extension>
+</addon>

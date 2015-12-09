@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8" standalone="yes"?>
+<strings>
+<!-- SETTINGS Zipabox -->
+    <string id="32000">Zipabox Ayarları</string>
+    <string id="32001">Genel</string>
+    <string id="32002">Zipabox seri no:</string>
+    <string id="32003">Endoint UUID:</string>
+    <string id="32004">API Key:</string>
+</strings>
