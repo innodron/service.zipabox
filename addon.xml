@@ -3,7 +3,7 @@
 	<requires>
 		<import addon="xbmc.python" version="2.19.0"/>
 	</requires>
-	<extension point="xbmc.service" library="default.py"/>
+	<extension point="xbmc.service" library="default.py" start="startup"/>
 	<extension point="xbmc.addon.metadata">
 		<summary lang="en">A plugin for pushing state change notifications to Zipabox home automation controller</summary>
 		<summary lang="tr">Zipabox Akıllı Ev kontrol ünitesi ile senkronizasyon eklentisi</summary>

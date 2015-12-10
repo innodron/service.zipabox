@@ -1,3 +1,9 @@
+v1.0.4
+- plugin now starts at Kodi startup
+- application main loop utilize Monitor.abortRequested() and Monitor.waitForAbort()
+- preferences checked at startup, alert dialog display if any is empty
+- preference changes are applied on-the-fly. No need to restart Kodi, or disable/enable the plugin
+
 v1.0.3
 - error recovery precautions
 

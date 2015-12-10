@@ -2,18 +2,36 @@ import os, subprocess
 import xbmc, xbmcgui, xbmcaddon
 import urllib2
 
+
 # Initialize ADDON
 ADDON        = xbmcaddon.Addon()
 ADDONNAME    = ADDON.getAddonInfo('name')
 ADDONID      = ADDON.getAddonInfo('id')
 ADDONVERSION = ADDON.getAddonInfo('version')
+ADDONICON    = ADDON.getAddonInfo("icon")
 CWD          = ADDON.getAddonInfo('path').decode("utf-8")
 
-# Initialize ADDON INFORMATION
+def notify(msg, time=5000):
+    notif_msg = "%s, %s, %i, %s" % ('Zipabox', msg, time, ADDONICON)
+    xbmc.executebuiltin("XBMC.Notification(%s)" % notif_msg.encode('utf-8'))
+
+
+def log(txt):
+    if isinstance(txt, str):
+        txt = txt.decode("utf-8")
+    message = u'%s: %s' % (ADDONID, txt)
+    xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
+
+log('ZIPABOX SYNC SERVICE STARTING')
+
+# Initialize ADDON settings
 settings     = xbmcaddon.Addon(id='service.zipabox')
 serial       = settings.getSetting("serial")
 ep_uuid      = settings.getSetting("ep_uuid")
 api_key      = settings.getSetting("api_key")
+
+if (not serial) or (not ep_uuid) or (not api_key):
+    notify('Please check add-on settings!')
 
 # Events
 STATE_SHUTDOWN      =  0
@@ -36,217 +54,140 @@ video = 0
 audio = 0
 stopmenu = 0
 
-ZIPABOX_URL = 'http://my.zipato.com/zipato-web/remoting/attribute/set?serial=%s&ep=%s&apiKey=%s&value1=%s'
+ZIPABOX_URL = 'https://my.zipato.com/zipato-web/remoting/attribute/set?serial=%s&ep=%s&apiKey=%s&value1=%s'
 
 
-def log(txt):
-    if isinstance(txt, str):
-        txt = txt.decode("utf-8")
-    message = u'%s: %s' % (ADDONID, txt)
-    xbmc.log(msg=message.encode("utf-8"), level=xbmc.LOGDEBUG)
+class LazyMonitor(xbmc.Monitor):
+    def __init__(self, *args, **kwargs):
+        xbmc.Monitor.__init__(self)
+
+    def onSettingsChanged(self):
+        global settings, serial, ep_uuid, api_key
+        # update the settings
+        settings = xbmcaddon.Addon(id='service.zipabox')
+        serial   = settings.getSetting("serial")
+        ep_uuid  = settings.getSetting("ep_uuid")
+        api_key  = settings.getSetting("api_key")
+
+        if (not serial) or (not ep_uuid) or (not api_key):
+            notify('Please check add-on settings!')
+
 
 
 class MyPlayer(xbmc.Player):
     def __init__(self):
         xbmc.Player.__init__(self)
-        # if (str(settings.getSetting("xbmc_started")) == "Yes"):
         try:
             urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_ONLINE))
-        except urllib2.URLError:
-            pass
-
-
+        except Exception, e:
+            log('Could not update Zipabox :(. ' + str(e))
 
     def onPlayBackStarted(self):
         xbmc.sleep(200)  # it may take some time for xbmc to read tag info after playback started
         if xbmc.Player().isPlayingVideo():
-            currentvideo = xbmc.Player().getVideoInfoTag().getTitle()
-            currentvideo = currentvideo.replace(' ', '_')
-            # if str(settings.getSetting("video_started")) == "Yes":
+            # currentvideo = xbmc.Player().getVideoInfoTag().getTitle()
+            # currentvideo = currentvideo.replace(' ', '_')
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_VIDEO_STARTED))
-            except urllib2.URLError:
-                pass
-
-
-            # if (str(settings.getSetting("video_title")) == "Yes"):
-            #        urllib2.urlopen(ZIPABOX_URL%s' % (ep_uuid, serial, api_key, currentvideo))
-            #        if (str(settings.getSetting("debug_mod")) == "Yes"):
-            #               print(ZIPABOX_URL%s' % (ep_uuid, serial, api_key, currentvideo))
+                # urllib2.urlopen(ZIPABOX_URL%s' % (ep_uuid, serial, api_key, currentvideo))
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
         if xbmc.Player().isPlayingAudio() == True:
-            currentsong = xbmc.Player().getMusicInfoTag().getTitle()
-            currentsong = currentsong.replace(' ', '_')
-            # if str(settings.getSetting("audio_started")) == "Yes":
+            # currentsong = xbmc.Player().getMusicInfoTag().getTitle()
+            # currentsong = currentsong.replace(' ', '_')
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_AUDIO_STARTED))
-            except urllib2.URLError:
-                pass
-
-            # if (str(settings.getSetting("audio_title")) == "Yes"):
-            #        urllib2.urlopen(ZIPABOX_URL%s' % (ep_uuid, serial, api_key, currentsong))
-            #        if (str(settings.getSetting("debug_mod")) == "Yes"):
-            #                print(ZIPABOX_URL%s' % (ep_uuid, serial, api_key, currentsong))
+                # urllib2.urlopen(ZIPABOX_URL%s' % (ep_uuid, serial, api_key, currentsong))
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
     def onPlayBackEnded(self):
         if VIDEO == 1:
-            # if str(settings.getSetting("video_ended")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_VIDEO_ENDED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
         if AUDIO == 1:
-            # if str(settings.getSetting("audio_ended")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_AUDIO_ENDED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
     def onPlayBackStopped(self):
         if VIDEO == 1:
-            # if str(settings.getSetting("video_stopped")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_VIDEO_STOPPED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
         if AUDIO == 1:
-            # if str(settings.getSetting("audio_stopped")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_AUDIO_STOPPED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
     def onPlayBackPaused(self):
         if xbmc.Player().isPlayingVideo():
-            # if str(settings.getSetting("video_paused")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_VIDEO_PAUSED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
         if xbmc.Player().isPlayingAudio():
-            # if str(settings.getSetting("audio_paused")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_AUDIO_PAUSED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
     def onPlayBackResumed(self):
         if xbmc.Player().isPlayingVideo():
-            # if str(settings.getSetting("video_resumed")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_VIDEO_RESUMED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
         if xbmc.Player().isPlayingAudio():
-            # if str(settings.getSetting("audio_resumed")) == "Yes":
             try:
                 urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_AUDIO_RESUMED))
-            except urllib2.URLError:
-                pass
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
 
-player = MyPlayer()
+if __name__ == '__main__':
+    player = MyPlayer()
+    mymonitor = LazyMonitor()
+    VIDEO  = 0
 
-VIDEO = 0
+    monitor = xbmc.Monitor()
+    while not monitor.abortRequested():
+        win = (xbmcgui.getCurrentWindowId())
 
-while not xbmc.abortRequested:
+        # User started the player.. That means menu is no longer visible
+        if xbmc.Player().isPlaying():
+            stopmenu = 1
+            if xbmc.Player().isPlayingVideo():
+                VIDEO = 1
+                AUDIO = 0
+            else:
+                VIDEO = 0
+                AUDIO = 1
 
-    win = (xbmcgui.getCurrentWindowId())
+        # User stopped the player.. That means menu is visible now
+        if not xbmc.Player().isPlaying() and stopmenu != 0:
+            menu = 0
+            stopmenu = 0
+            try:
+                urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_MENUVISIBLE))
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
 
-    # User started the player.. That means menu is no longer visible
-    if xbmc.Player().isPlaying():
-        stopmenu = 1
-        if xbmc.Player().isPlayingVideo():
-            VIDEO = 1
-            AUDIO = 0
-        else:
-            VIDEO = 0
-            AUDIO = 1
-
-    # User stopped the player.. That means menu is visible now
-    if not xbmc.Player().isPlaying() and stopmenu != 0:
-        menu = 0
-        stopmenu = 0
-        try:
-            urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_MENUVISIBLE))
-        except urllib2.URLError:
-            pass
-
-        #  if win == 10000 and menu != 10000:
-        #          menu = 10000
-        #          if (str(settings.getSetting("menu_home")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL12' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10001 and menu != 10001:
-        #          menu = 10001
-        #          if (str(settings.getSetting("menu_program")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL13' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10002 and menu != 10002:
-        #          menu = 10002
-        #          if (str(settings.getSetting("menu_picture")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL14' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10004 and menu != 10004:
-        #          menu = 10004
-        #          if (str(settings.getSetting("menu_setting")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL15' % (serial, ep_uuid, api_key))
-        #
-        # #navigate video menu
-        #  if win == 10006 and menu != 10006:
-        #          menu = 10006
-        #          if (str(settings.getSetting("menu_video")) == "Yes"):
-        #                 urllib2.urlopen(ZIPABOX_URL16' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10024 and menu != 10024:
-        #          menu = 10024
-        #          if (str(settings.getSetting("menu_video")) == "Yes"):
-        #                 urllib2.urlopen(ZIPABOX_URL16' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10025 and menu != 10025:
-        #          menu = 10025
-        #          if (str(settings.getSetting("menu_video")) == "Yes"):
-        #                 urllib2.urlopen(ZIPABOX_URL16' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10028 and menu != 10028:
-        #          menu = 10028
-        #          if (str(settings.getSetting("menu_video")) == "Yes"):
-        #                 urllib2.urlopen(ZIPABOX_URL16' % (serial, ep_uuid, api_key))
-        #
-        #  #navigate audio menu
-        #  if win == 10005 and menu != 10005:
-        #          menu = 10005
-        #          if (str(settings.getSetting("menu_music")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL17' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10500 and menu != 10500:
-        #          menu = 10500
-        #          if (str(settings.getSetting("menu_music")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL17' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10501 and menu != 10501:
-        #          menu = 10501
-        #          if (str(settings.getSetting("menu_music")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL17' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 10502 and menu != 10502:
-        #          menu = 10502
-        #          if (str(settings.getSetting("menu_music")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL17' % (serial, ep_uuid, api_key))
-        #
-        #  if win == 12600 and menu != 12600:
-        #          menu = 12600
-        #          if (str(settings.getSetting("menu_weather")) == "Yes"):
-        #                  urllib2.urlopen(ZIPABOX_URL18' % (serial, ep_uuid, api_key))
-
-    xbmc.sleep(1000)
-
-# if str(settings.getSetting("xbmc_ended")) == "Yes":
-try:
-    urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_SHUTDOWN))
-except urllib2.URLError:
-    pass
+        # Sleep/wait for abort for 10 seconds
+        if monitor.waitForAbort(10):
+            # Abort was requested while waiting. We should exit
+            try:
+                urllib2.urlopen(ZIPABOX_URL % (serial, ep_uuid, api_key, STATE_SHUTDOWN))
+            except Exception, e:
+                log('Could not update Zipabox :(. ' + str(e))
+            break
