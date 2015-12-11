@@ -3,7 +3,7 @@
 <!-- SETTINGS Zipabox -->
     <string id="32000">Zipabox Settings</string>
     <string id="32001">General</string>
-    <string id="32002">Zipabox Serial</string>
+    <string id="32002">Zipabox Serial:</string>
     <string id="32003">Endoint UUID:</string>
     <string id="32004">API Key:</string>
 </strings>
